@@ -1,0 +1,25 @@
+config.pt_mail {
+
+	body = TEMPLATE
+    body {
+        template.file = EXT:pt_mail/res/smarty_tpl/default_mail_%s.tpl
+        template = FILE
+        workOnSubpart = BODY
+    }
+	
+	bodyFooter < .body
+	bodyFooter.workOnSubpart = FOOTER
+	
+	bodyHeader < .body
+	bodyHeader.workOnSubpart = HEADER
+	
+	subject < .body
+	subject.workOnSubpart = SUBJECT
+	
+    mailCharset = iso-8859-15
+
+    templateCharset = utf-8
+    
+    additionalHeaders.10 = X-Mailer : ELM [version 2.4ME+ PL99f (25)]
+    
+}	

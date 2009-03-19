@@ -1,0 +1,39 @@
+/* 
+possible subcategories: 
+----------------------
+basic        Extension configuration in Extension Manager
+
+possible data types (type=):
+---------------------------
+int [low-high]              integer, opt. in range "low" to "high"
+int+                        positive integer
+offset [L1,L2,...L6]        comma-separated integers. Default is "x,y", but as comma separated parameters in brackets you can specify up to 6 labels being comma separated! If you wish to omit one of the last 4 fields, just don't enter a label for that element.
+color                       HTML color
+wrap                        HTML-code that is wrapped around some content.
+options [item1,item2,...]   Selectbox with values/labels item1, item2 etc. Commaseparated. Split by "=" also and in that case, first part is label, second is value
+boolean [truevalue]         Boolean, opt. you can define the value of "true", def.=1
+comment                     Boolean, checked= "", not-checked = "#".
+file [ext-list/IMAGE_EXT]   Selectorbox with resources. Opt. list allowed extensions (no space in list!), eg. "[ttf]" or "[txt,html,htm]". You can also enter "[IMAGE_EXT]" in which case the default image-extensions are listed. (used for datatype "imgResouce")
+string (the default)        Just a string value
+*/
+
+# cat=basic//1; type=string; label=page of the TS:
+tsConfigurationPid = 1
+
+# cat=basic//2; type=string; label=email address of the sender:
+fromEmail = 
+
+# cat=basic//3; type=string; label=email title of the sender:
+fromTitle = 
+
+# cat=basic//4; type=string; label=charset of the email templates (e.g. 'utf-8', 'iso-8859-15'):
+templateCharset = utf-8
+
+# cat=basic//5; type=string; label=charset of the emails (e.g. 'utf-8', 'iso-8859-15'):
+mailCharset = iso-8859-15
+
+# cat=basic//6; type=boolean; label=Development mode: In development mode no mails will be delivered to their original reciepients (to, cc, or bcc) but to the mail address defined under developmentModeReciever if set.
+developmentMode = 0
+
+# cat=basic//7; type=string; label=Development mode reciever: If in development mode mails will be sent to this address if set.
+developmentModeReceiver = 
