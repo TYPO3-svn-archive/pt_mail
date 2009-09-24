@@ -42,6 +42,7 @@ require_once t3lib_extMgm::extPath('pt_mail') . 'res/class.tx_ptmail_addressColl
 require_once t3lib_extMgm::extPath('pt_mail') . 'res/class.tx_ptmail_attachment.php';
 require_once t3lib_extMgm::extPath('pt_mail') . 'res/class.tx_ptmail_attachmentCollection.php'; // extension specific collection class
 require_once t3lib_extMgm::extPath('pt_mail') . 'res/class.tx_ptmail_t3lib_htmlmailAdapter.php';
+require_once t3lib_extMgm::extPath('pt_mail') . 'res/class.tx_ptmail_template_smarty.php';
 
 /**
  * Inclusion of external resources
@@ -50,7 +51,6 @@ require_once t3lib_extMgm::extPath('pt_tools') . 'res/staticlib/class.tx_pttools
 require_once t3lib_extMgm::extPath('pt_tools') . 'res/staticlib/class.tx_pttools_assert.php';
 require_once t3lib_extMgm::extPath('pt_tools') . 'res/objects/class.tx_pttools_exception.php'; // general exception class
 require_once t3lib_extMgm::extPath('pt_tools') . 'res/staticlib/class.tx_pttools_div.php'; // general static library class
-require_once t3lib_extMgm::extPath('pt_tools') . 'res/objects/class.tx_pttools_smartyAdapter.php';
 require_once t3lib_extMgm::extPath('cms') . 'tslib/class.tslib_content.php';
 require_once t3lib_extMgm::extPath('cms') . 'tslib/class.tslib_fe.php';
 require_once (PATH_t3lib . 'class.t3lib_timetrack.php');
@@ -147,6 +147,21 @@ class tx_ptmail_mail {
 	protected $bodyFooter;
 	
 	/**
+	 * @var string   header of the body of the html mail
+	 */
+	protected $htmlBodyHeader;
+	
+	/**
+	 * @var string   body of the html mail
+	 */
+	protected $htmlBody;
+	
+	/**
+	 * @var string   footer of the body of the html mail
+	 */
+	protected $htmlBodyFooter;
+	
+	/**
 	 * @var tx_ptmail_iDriver if not set tx_ptmail_t3lib_htmlmailAdapter 
 	 */
 	protected $driver;
@@ -170,6 +185,11 @@ class tx_ptmail_mail {
 	 * @var string  mail identifier (optional)
 	 */
 	protected $maildId = '';
+	
+	/**
+	 * @var tx_ptmail_iTemplate
+	 */
+	protected $template;
 	
 	/**
 	 * Class Constants
@@ -227,6 +247,10 @@ class tx_ptmail_mail {
 		
 		tx_pttools_assert::isInstanceOf($this->get_to(), 'tx_ptmail_addressCollection', array('message' => 'No "to" address defined'));
 		tx_pttools_assert::isInstanceOf($this->get_from(), 'tx_ptmail_address', array('message' => 'No "from" address defined'));
+		
+		if (is_null($this->template)) {
+			$this->template = new tx_ptmail_template_smarty();
+		}
 		
 		if (is_null($this->driver)) {
 			$this->driver = new tx_ptmail_t3lib_htmlmailAdapter();
@@ -487,7 +511,12 @@ class tx_ptmail_mail {
 		}
 		$this->initAdditionalHeader();
 		
-		foreach (array('subject', 'bodyHeader', 'body', 'bodyFooter') as $type) {
+		$types = array(
+			'subject', 
+			'bodyHeader', 'body', 'bodyFooter',
+			'htmlBodyHeader', 'htmlBody', 'htmlBodyFooter',
+		);
+		foreach ($types as $type) {
 			if (isset($this->conf[$type]) && is_array($this->conf[$type . '.'])) {
 				$template = $this->initSubpart($this->conf[$type], $this->conf[$type . '.']);
 				$setter = 'set_' . $type;
@@ -629,22 +658,47 @@ class tx_ptmail_mail {
 
 
 	/**
+	 * Returns the complete body and replaces markers
+	 *
+	 * @param   array	subpart marker array
+	 * @return  string	mail body
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+	 * @since   2009-09-21
+	 */
+	protected function getHtmlBodyOutput(array $subpartMarkerArray) {
+		
+		$htmlBodyHeader = $this->replaceMarker($this->get_htmlBodyHeader(), $subpartMarkerArray);
+		$htmlBody = $this->replaceMarker($this->get_htmlBody(), $subpartMarkerArray);
+		$htmlBodyFooter = $this->replaceMarker($this->get_htmlBodyFooter(), $subpartMarkerArray);
+		$mailHtmlBody = '';
+		$mailHtmlBody .= !empty($htmlBodyHeader) ? $htmlBodyHeader . "\n" : '';
+		$mailHtmlBody .= !empty($htmlBody) ? $htmlBody . "\n" : '';
+		$mailHtmlBody .= !empty($htmlBodyFooter) ? $htmlBodyFooter . "\n" : '';
+		//$mailHtmlBody = $this->replaceMarker($this->initSubpart($this->conf['mail'], $this->conf['mail.']), $markerArray);
+		if (strlen(trim($this->get_templateCharset())) > 0 && strlen(trim($this->get_mailCharset())) > 0 && $this->get_templateCharset() != $this->get_mailCharset()) {
+			$mailHtmlBody = iconv($this->get_templateCharset(), $this->get_mailCharset() . '//IGNORE', $mailHtmlBody);
+		}
+		return $mailHtmlBody;
+	}
+
+
+
+	/**
 	 * replace the marker in a smarty template string and return it as string
 	 *
-	 * @param   	string	smarty template string
+	 * @param   string	smarty template string
 	 * @param 	array	marker and values to replace    
-	 * @return   string  the string with the replaced markers
+	 * @return  string  the string with the replaced markers
 	 * @author	Ursula Klinger <klinger@punkt.de>
 	 * @since   2008-10-23
 	 */
 	protected function replaceMarker($text, array $markerArray) {
 		
-		$smarty = new tx_pttools_smartyAdapter(self::EXT_KEY);
-		foreach ($markerArray as $markerKey => $markerValue) {
-			$smarty->assign($markerKey, $markerValue);
-		}
-		return $smarty->fetch('string:' . $text);
-	
+		$this->template->setContent($text);
+		$this->template->setMarkerArray($markerArray);
+
+		return $this->template->render();
+		
 	}
 
 
@@ -971,6 +1025,94 @@ class tx_ptmail_mail {
 	/**
 	 * Set the property value
 	 *
+	 * @param   string        
+	 * @return  tx_ptmail_mail
+	 * @since   2009-09-21
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+	 */
+	public function set_htmlBodyHeader($htmlBodyHeader) {
+		$this->htmlBodyHeader = $htmlBodyHeader;
+		return $this;
+	}
+
+
+
+	/**
+	 * Returns the property value
+	 *
+	 * @param   void        
+	 * @return  
+	 * @since   2009-09-21
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+	 */
+	public function get_htmlBodyHeader() {
+		return $this->htmlBodyHeader;
+	}
+
+
+
+	/**
+	 * Set the property value
+	 *
+	 * @param	string
+	 * @return  tx_ptmail_mail
+	 * @since   2009-09-21
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+	 */
+	public function set_htmlBody($htmlBody) {
+		$this->htmlBody = $htmlBody;
+		return $this;
+	}
+
+
+
+	/**
+	 * Returns the property value
+	 *
+	 * @param   void        
+	 * @return  string
+	 * @since   2009-09-21
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+	 */
+	public function get_htmlBody() {
+		return $this->htmlBody;
+	}
+
+
+
+	/**
+	 * Set the property value
+	 *
+	 * @param   string        
+	 * @return  tx_ptmail_mail
+	 * @since   2009-09-21
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+	 */
+	
+	public function set_htmlBodyFooter($htmlBodyFooter) {
+		$this->htmlBodyFooter = $htmlBodyFooter;
+		return $this;
+	}
+
+
+
+	/**
+	 * Returns the property value
+	 *
+	 * @param   void        
+	 * @return  string
+	 * @since   2009-09-21
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+	 */
+	public function get_htmlBodyFooter() {
+		return $this->htmlBodyFooter;
+	}
+
+
+
+	/**
+	 * Set the property value
+	 *
 	 * @param   string	additional headers       
 	 * @return  tx_ptmail_mail
 	 * @since   2008-10-23
@@ -1077,7 +1219,7 @@ class tx_ptmail_mail {
 
 
 	/**
-	 * Returns the property value
+	 * Sets the property value
 	 *
 	 * @param   tx_ptmail_iDriver        
 	 * @return  tx_ptmail_mail
@@ -1088,6 +1230,20 @@ class tx_ptmail_mail {
 		return $this;
 	}
 
+
+
+	/**
+	 * Sets the property value
+	 *
+	 * @param   tx_ptmail_iDriver        
+	 * @return  tx_ptmail_mail
+	 * @since   2009-09-21
+	 */
+	public function set_template(tx_ptmail_iTemplate $template) {
+		$this->template = $template;
+		return $this;
+	}
+	
 } // end class
 
 

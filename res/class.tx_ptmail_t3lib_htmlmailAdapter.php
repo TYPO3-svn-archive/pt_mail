@@ -100,6 +100,11 @@ class tx_ptmail_t3lib_htmlmailAdapter extends t3lib_htmlmail implements tx_ptmai
 	 */
 	protected $templateCharset = '';
 	
+	/**
+	 * @var array configuration;
+	 */
+	protected $conf;
+	
 	
 	/***************************************************************************
      *   CONSTRUCTOR
@@ -118,11 +123,22 @@ class tx_ptmail_t3lib_htmlmailAdapter extends t3lib_htmlmail implements tx_ptmai
      * @author	Ursula Klinger <klinger@punkt.de>
      * @since   2008-10-23
      */
+    public function setConfiguration(array $conf) {
+		$this->conf = $conf;
+    }
+	
+    /**
+     * set the email recipients
+     *
+     * @param   tx_ptmail_addressCollection address collection of the recipients
+     * @return  void 
+     * @author	Ursula Klinger <klinger@punkt.de>
+     * @since   2008-10-23
+     */
     public function setTo(tx_ptmail_addressCollection $to) {
 		tx_pttools_assert::isObject($to);
 		$this->set_to($to);
     }
-    
     
      /**
      * set the email cc recipients
@@ -241,7 +257,6 @@ class tx_ptmail_t3lib_htmlmailAdapter extends t3lib_htmlmail implements tx_ptmai
     	$this->subject = $subject;
     	
     }
-    
    
     /**
      * set the body of the mail
@@ -254,6 +269,18 @@ class tx_ptmail_t3lib_htmlmailAdapter extends t3lib_htmlmail implements tx_ptmai
     public function setBody($body) {
     	$this->setPlain($this->encodeMsg($body));
     }
+   
+    /**
+     * set the html body of the mail
+     *
+     * @param   string	body of the mail
+     * @return  void
+     * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+     * @since   2009-09-21
+     */
+    public function setHTMLBody($body) {
+    	$this->setHtml($this->encodeMsg($body));
+    }
     
     /**
      * set the additinal headers of the mail
@@ -263,7 +290,6 @@ class tx_ptmail_t3lib_htmlmailAdapter extends t3lib_htmlmail implements tx_ptmai
      * @author	Ursula Klinger <klinger@punkt.de>
      * @since   2008-10-23
      */
-    
 	public function setAdditionalHeaders(tx_ptmail_additionalHeaderCollection $additionalHeaders) {
     	$this->set_additionalHeaders($additionalHeaders);
     	

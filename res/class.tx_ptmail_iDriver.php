@@ -151,6 +151,17 @@ interface tx_ptmail_iDriver {
      */
     public function setBody($body);
     
+    
+    /**
+     * set the html body of the mail
+     *
+     * @param   string	body of the mail
+     * @return  void
+     * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+     * @since   2009-09-21
+     */
+    public function setHTMLBody($body);
+    
     /**
      * set the additinal headers of the mail
      *
@@ -160,6 +171,16 @@ interface tx_ptmail_iDriver {
      * @since   2008-10-23
      */
     public function setAdditionalHeaders(tx_ptmail_additionalHeaderCollection $headers);
+    
+    /**
+     * sets additional driver specific configuration
+     *
+     * @param   array	configuration
+     * @return  void
+     * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+     * @since   2009-09-21
+     */
+    public function setConfiguration(array $conf);
     
     /**
      * prepare the mail and send it
