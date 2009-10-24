@@ -147,6 +147,22 @@ class tx_ptmail_mail {
 	protected $bodyFooter;
 	
 	/**
+	 * @var string   header of the body of the html mail
+	 */
+	protected $htmlBodyHeader;
+	
+	/**
+	 * @var string   body of the html mail
+	 */
+	protected $htmlBody;
+	
+	/**
+	 * @var string   footer of the body of the html mail
+	 */
+	protected $htmlBodyFooter;
+	
+	
+	/**
 	 * @var tx_ptmail_iDriver if not set tx_ptmail_t3lib_htmlmailAdapter 
 	 */
 	protected $driver;
@@ -154,7 +170,7 @@ class tx_ptmail_mail {
 	/**
 	 * @var tx_ptmail_additionalHeaderCollection  all additional header entries 
 	 */
-	protected $addtionalHeaders;
+	protected $additionalHeaders;
 	
 	/**
 	 * @var string organisation write in the header of the mail
@@ -286,6 +302,7 @@ class tx_ptmail_mail {
 		}
 		
 		$body = $this->getBodyOutput($markerArray);
+		$htmlBody = $this->getHtmlBodyOutput($markerArray);
 		
 		if ($this->conf['developmentMode']) {
 			$subject = '[pt_mail development mode] ' . $subject;
@@ -318,6 +335,7 @@ class tx_ptmail_mail {
 		
 		$this->driver->setSubject($subject);
 		$this->driver->setBody($body);
+		$this->driver->setHtmlBody($htmlBody);
 		
 		if (!empty($this->conf['returnPath'])) {
 			if (TYPO3_DLOG) t3lib_div::devLog(sprintf('Setting returnPath to "%s"', $this->conf['returnPath']), 'pt_mail');
@@ -626,7 +644,33 @@ class tx_ptmail_mail {
 		return $mailBody;
 	}
 
+	/**
+	 * Returns the complete body and replaces markers
+	 *
+	 * @param   array	subpart marker array
+	 * @return  string	mail body
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+	 * @since   2009-09-21
+	 */
+	protected function getHtmlBodyOutput(array $subpartMarkerArray) {
+		
+		$htmlBodyHeader = $this->replaceMarker($this->get_htmlBodyHeader(), $subpartMarkerArray);
+		$htmlBody = $this->replaceMarker($this->get_htmlBody(), $subpartMarkerArray);
+		$htmlBodyFooter = $this->replaceMarker($this->get_htmlBodyFooter(), $subpartMarkerArray);
+		$mailHtmlBody = '';
+		$mailHtmlBody .= !empty($htmlBodyHeader) ? $htmlBodyHeader . "\n" : '';
+		$mailHtmlBody .= !empty($htmlBody) ? $htmlBody . "\n" : '';
+		$mailHtmlBody .= !empty($htmlBodyFooter) ? $htmlBodyFooter . "\n" : '';
+		//$mailHtmlBody = $this->replaceMarker($this->initSubpart($this->conf['mail'], $this->conf['mail.']), $markerArray);
+		if (strlen(trim($this->get_templateCharset())) > 0 && strlen(trim($this->get_mailCharset())) > 0 && $this->get_templateCharset() != $this->get_mailCharset()) {
+			$mailHtmlBody = iconv($this->get_templateCharset(), $this->get_mailCharset() . '//IGNORE', $mailHtmlBody);
+		}
+		return $mailHtmlBody;
+	}
 
+
+
+	
 
 	/**
 	 * replace the marker in a smarty template string and return it as string
@@ -966,7 +1010,93 @@ class tx_ptmail_mail {
 		return $this->bodyFooter;
 	}
 
+/**
+	 * Set the property value
+	 *
+	 * @param   string        
+	 * @return  tx_ptmail_mail
+	 * @since   2009-09-21
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+	 */
+	public function set_htmlBodyHeader($htmlBodyHeader) {
+		$this->htmlBodyHeader = $htmlBodyHeader;
+		return $this;
+	}
 
+
+
+	/**
+	 * Returns the property value
+	 *
+	 * @param   void        
+	 * @return  
+	 * @since   2009-09-21
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+	 */
+	public function get_htmlBodyHeader() {
+		return $this->htmlBodyHeader;
+	}
+
+
+
+	/**
+	 * Set the property value
+	 *
+	 * @param	string
+	 * @return  tx_ptmail_mail
+	 * @since   2009-09-21
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+	 */
+	public function set_htmlBody($htmlBody) {
+		$this->htmlBody = $htmlBody;
+		return $this;
+	}
+
+
+
+	/**
+	 * Returns the property value
+	 *
+	 * @param   void        
+	 * @return  string
+	 * @since   2009-09-21
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+	 */
+	public function get_htmlBody() {
+		return $this->htmlBody;
+	}
+
+
+
+	/**
+	 * Set the property value
+	 *
+	 * @param   string        
+	 * @return  tx_ptmail_mail
+	 * @since   2009-09-21
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+	 */
+	
+	public function set_htmlBodyFooter($htmlBodyFooter) {
+		$this->htmlBodyFooter = $htmlBodyFooter;
+		return $this;
+	}
+
+
+
+	/**
+	 * Returns the property value
+	 *
+	 * @param   void        
+	 * @return  string
+	 * @since   2009-09-21
+	 * @author	Fabrizio Branca <mail@fabrizio-branca.de>
+	 */
+	public function get_htmlBodyFooter() {
+		return $this->htmlBodyFooter;
+	}
+
+	
 
 	/**
 	 * Set the property value

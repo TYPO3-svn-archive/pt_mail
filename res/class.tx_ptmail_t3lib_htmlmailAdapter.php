@@ -256,6 +256,18 @@ class tx_ptmail_t3lib_htmlmailAdapter extends t3lib_htmlmail implements tx_ptmai
     }
     
     /**
+     * set the body HTML of the mail
+     *
+     * @param   string	body of the mail
+     * @return  void
+     * @author	Ursula Klinger <klinger@punkt.de>
+     * @since   2008-10-23
+     */
+    public function setHtmlBody($body) {
+    	$this->setHtml($this->encodeMsg($body));
+    }
+    
+    /**
      * set the additinal headers of the mail
      *
      * @param   tx_ptmail_additionalHeaderCollection	additional headers of the mail
@@ -340,11 +352,28 @@ class tx_ptmail_t3lib_htmlmailAdapter extends t3lib_htmlmail implements tx_ptmai
 				$this->add_header($additionalHeader->get_header());
 			}
 		}
-    }
-    
-    /***************************************************************************
-     *   PROPERTY GETTER/SETTER METHODS
-     **************************************************************************/
+	}
+
+	/**
+	 * use the parent class, only for a html mail there is oanother
+	 *
+	 * @param   void
+	 * @return  void
+	 * @author	Ursula Klinger <klinger@punkt.de>
+	 * @since   2008-10-23
+	 */
+	public function setContent() {
+		if (!empty($this->theParts['html']['content']) && empty($this->theParts['plain']['content'])){
+			$this->add_header($this->html_text_header);
+			$this->add_message($this->getContent('html'));
+		} else {
+			parent::setContent();
+		}
+	}
+
+	/***************************************************************************
+	 *   PROPERTY GETTER/SETTER METHODS
+	 **************************************************************************/
 	
 	/**
  	 * Set the property value

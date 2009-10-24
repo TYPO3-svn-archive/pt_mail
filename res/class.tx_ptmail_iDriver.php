@@ -152,6 +152,16 @@ interface tx_ptmail_iDriver {
     public function setBody($body);
     
     /**
+     * set the html body of the mail
+     *
+     * @param   string	HTML body of the mail
+     * @return  void
+     * @author	Ursula Klinger <klinger@punkt.de>
+     * @since   2008-10-23
+     */
+    public function setHtmlBody($body);
+    
+    /**
      * set the additinal headers of the mail
      *
      * @param   tx_ptmail_additionalHeaderCollection	additional headers of the mail
