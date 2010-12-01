@@ -484,14 +484,14 @@ class tx_ptmail_mail {
 			$fakeTsfe = true;
 			// backup current TSFE
 			$currTsfe = $GLOBALS['TSFE'];
+			if (!$GLOBALS['TT'] instanceof t3lib_timeTrack) {
+				$GLOBALS['TT'] = new t3lib_timeTrack();
+			}
 			if (!$GLOBALS['TSFE'] instanceof tslib_fe) {
 				$TSFEclassName = t3lib_div::makeInstanceClassName('tslib_fe');
 				$GLOBALS['TSFE'] = new $TSFEclassName($GLOBALS['TYPO3_CONF_VARS'], 0, '0', 1, '', '', '', '');
 				$GLOBALS['TSFE']->cObjectDepthCounter = 100;
 				$GLOBALS['TSFE']->initTemplate();
-			}
-			if (!$GLOBALS['TT'] instanceof t3lib_timeTrack) {
-				$GLOBALS['TT'] = new t3lib_timeTrack();
 			}
 			$this->cObj = t3lib_div::makeInstance('tslib_cObj');
 		}
